@@ -12,7 +12,7 @@ services:
 
   nginx-app:
     build:
-      context: ./
+      context: .
       dockerfile: Dockerfile.nginx
     container_name: ngnix_container
 
