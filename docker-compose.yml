@@ -1,0 +1,25 @@
+version: "3.1"
+services:
+  room-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: room_app_container
+    volumes:
+      - ./src:/App/src:ro
+    ports:
+      - "5000:5000"
+
+  nginx-app:
+    build:
+      context: ./
+      dockerfile: Dockerfile.nginx
+    container_name: ngnix_container
+
+    # volumes:
+    #     - ./Care_Frontend/build:/usr/share/nginx/html:ro
+    ports:
+      - 80:80
+    restart: always
+
+ 
