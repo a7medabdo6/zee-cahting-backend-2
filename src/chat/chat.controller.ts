@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Headers, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Headers, Get, Param, Query, BadRequestException } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { SendMessageDto } from './dto/send-message.dto';
 import { PrivateMessage } from './entities/private-message.entity';
@@ -8,6 +8,7 @@ import { UserGuard } from 'src/common/user_guard';
 import { UserAuth } from 'src/common/user_auth';
 import { UserJwt } from 'src/common/user_decorate';
 import { SendRoomMessageDto } from './dto/send-room-message.dto';
+import { ReactionDto } from './dto/reaction.dto';
 
 @Controller('chat')
 @UseGuards(UserGuard)
@@ -79,6 +80,20 @@ export class ChatController {
     const messagesIds = await this.chatService.setPrivateMessagesIsSeen(contactId, userAuth.id);
     await this.chatGateway.sendPrivateMessagesIsSeen(contactId, userAuth.id, messagesIds);
 
+    return;
+  }
+
+  @Post('private-message-reaction')
+  async privateMessageReaction(@UserJwt() userAuth: UserAuth, @Body() reactionDto: ReactionDto) {
+    const message = await this.chatService.privateMessageReaction(userAuth.id, reactionDto);
+    this.chatGateway.sendPrivateMessagesReaction(message);
+    return;
+  }
+
+  @Post('room-message-reaction')
+  async roomMessageReaction(@UserJwt() userAuth: UserAuth, @Body() reactionDto: ReactionDto) {
+    if (!reactionDto.roomId) throw new BadRequestException('Room id is required');
+    this.chatGateway.sendRoomMessagesReaction(userAuth.id, reactionDto);
     return;
   }
 }

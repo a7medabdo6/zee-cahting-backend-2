@@ -8,6 +8,7 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 import { RoomMessage } from 'src/chat/entities/room-message-entity';
 import { RoomMessageTypes } from 'src/common/enums';
 import { RoomActionDto } from './dto/room-action.dto';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class RoomsService {
@@ -168,6 +169,7 @@ export class RoomsService {
 
     this.userModel.updateOne({ _id: roomActionDto.userId }, { $addToSet: { activeRooms: roomActionDto.roomId, favoriteRooms: roomActionDto.roomId } }).exec();
     return {
+      id: randomUUID(),
       sender: user,
       type: RoomMessageTypes.becomeMember,
       roomId: roomActionDto.roomId,
@@ -187,6 +189,7 @@ export class RoomsService {
     if (!user || !member) throw new BadRequestException('User not found');
 
     return {
+      id: randomUUID(),
       sender: user,
       type: RoomMessageTypes.kick,
       roomId: roomActionDto.roomId,
@@ -217,6 +220,7 @@ export class RoomsService {
     if (!room) throw new BadRequestException('User is Already is not a Member or you are not the creator or owner or Admin');
 
     return {
+      id: randomUUID(),
       sender: user,
       type: RoomMessageTypes.removeMember,
       roomId: roomActionDto.roomId,
@@ -252,6 +256,7 @@ export class RoomsService {
     if (!room) throw new BadRequestException('User is Already Banned or you are not the creator or owner or Admin');
 
     return {
+      id: randomUUID(),
       sender: user,
       type: RoomMessageTypes.banned,
       roomId: roomActionDto.roomId,
@@ -285,6 +290,7 @@ export class RoomsService {
     if (!room) throw new BadRequestException('User is Already Un Banned or you are not the creator or owner or Admin');
 
     return {
+      id: randomUUID(),
       sender: user,
       type: RoomMessageTypes.unbanned,
       roomId: roomActionDto.roomId,
@@ -319,6 +325,7 @@ export class RoomsService {
     if (!room) throw new BadRequestException('you are not the creator or owner');
 
     return {
+      id: randomUUID(),
       sender: user,
       type: RoomMessageTypes.becomeAdmin,
       roomId: roomActionDto.roomId,
@@ -351,6 +358,7 @@ export class RoomsService {
     if (!room) throw new BadRequestException('you are not the creator');
 
     return {
+      id: randomUUID(),
       sender: user,
       type: RoomMessageTypes.becomeOwner,
       roomId: roomActionDto.roomId,
@@ -385,6 +393,7 @@ export class RoomsService {
     if (!room) throw new BadRequestException('User is Already not a Admin or you are not the creator or owner');
 
     return {
+      id: randomUUID(),
       sender: user,
       type: RoomMessageTypes.removeAdmin,
       roomId: roomActionDto.roomId,
@@ -416,6 +425,7 @@ export class RoomsService {
     if (!room) throw new BadRequestException('User is Already not a Owner or you are not the creator');
 
     return {
+      id: randomUUID(),
       sender: user,
       type: RoomMessageTypes.removeOwner,
       roomId: roomActionDto.roomId,

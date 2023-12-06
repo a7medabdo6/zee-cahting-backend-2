@@ -24,3 +24,12 @@ export enum RoomMessageTypes {
     unbanned = 11,
     removeMember = 12,
 }
+
+export enum ReactionsTypes {
+    like = 0,
+    haha = 1,
+    love = 2,
+    wow = 3,
+    sad = 4,
+    angry = 5,
+}

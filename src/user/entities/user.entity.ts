@@ -87,6 +87,11 @@ export class User extends Document {
     @Prop()
     activeRooms: string[];
 
+    @Prop()
+    color?: number;
+
+    @Prop()
+    deviceId?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

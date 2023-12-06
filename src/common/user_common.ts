@@ -9,5 +9,5 @@ export async function checkIsUserBlocked(userModel: Model<Block>, userId: string
 }
 
 export const userDataExcludedFields = '-password -fcm';
-export const baseUserFields = '_id username picture status';
-export const fullUserFields = '_id username picture age gender country views status isOnline isHiddenActivity isPrivateLock createdAt';
+export const baseUserFields = '_id username picture status color';
+export const fullUserFields = '_id username picture color age gender country views status isOnline isHiddenActivity isPrivateLock createdAt';

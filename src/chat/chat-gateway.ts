@@ -8,6 +8,8 @@ import { RoomMessage } from "./entities/room-message-entity";
 import { Room } from "src/rooms/entities/room";
 import { RoomMessageTypes } from "src/common/enums";
 import { User } from "src/user/entities/user.entity";
+import { randomUUID } from "crypto";
+import { ReactionDto } from "./dto/reaction.dto";
 
 @WebSocketGateway({
     transports: ['websocket'],
@@ -109,6 +111,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     async sendPrivateMessagesIsSeen(senderId: string, receiverId: string, messagesIds: string[]) {
 
         this.io.to(senderId).emit('private-messages-is-seen', { userId: receiverId, messagesIds });
+    }
+
+    async sendPrivateMessagesReaction(privateMessage: PrivateMessage) {
+
+        this.io.to(privateMessage.senderId).emit('private-messages-reaction', { senderId: privateMessage.senderId, receiverId: privateMessage.receiverId, id: privateMessage.id, reactions: privateMessage.reactions });
+        this.io.to(privateMessage.receiverId).emit('private-messages-reaction', { senderId: privateMessage.senderId, receiverId: privateMessage.receiverId, id: privateMessage.id, reactions: privateMessage.reactions });
+    }
+
+    async sendRoomMessagesReaction(userId: string, reactionDto: ReactionDto) {
+
+        this.io.to(reactionDto.roomId).emit('room-message-reaction', { userId, ...reactionDto, user: reactionDto.type == null ? null : await this.chatService.getUserById(userId) });
     }
 
     async sendUserOnlineStatusToContacts(userId: string, status: boolean) {
@@ -259,6 +272,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
         this.sendRoomMessage(
             {
+                id: randomUUID(),
                 sender: user,
                 roomId,
                 type: roomMessageType,
@@ -293,5 +307,13 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             }
         }
         this.sendCustomRoomMessage(roomId, userId, RoomMessageTypes.create);
+    }
+
+    async sendUpdatedUserColorToActiveRooms(userId: string) {
+        const rooms = await this.chatService.getUserActiveRooms(userId);
+        for (const roomId of rooms) {
+            const room = await this.chatService.getRoomById(roomId);
+            if (room) this.sendUpdatedRoom(room);
+        }
     }
 }

@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Length, MaxLength } from 'class-validator';
 
 export class RegisterDto {
 
@@ -10,9 +10,9 @@ export class RegisterDto {
     readonly password: string;
 
     @IsNotEmpty()
-    @Length(6, 64)
+    @MaxLength(64)
     readonly username: string;
-    
+
     // @IsString()
     // @IsOptional()
     // readonly country?: string;
@@ -32,4 +32,8 @@ export class RegisterDto {
     @IsString()
     @IsOptional()
     readonly fcm?: string;
+
+    @IsString()
+    @IsOptional()
+    readonly deviceId?: string;
 }

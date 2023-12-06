@@ -20,9 +20,13 @@ export class AuthService {
 
     if (user) throw new BadRequestException('Username already exists');
 
+    if (registerDto.deviceId) {
+      const count = await this.userModel.find({ deviceId: registerDto.deviceId }).count().exec();
+      if (count >= 5) throw new BadRequestException('Max Account 5 per Mobile');
+    }
     const encryptPassword = encryptText(registerDto.password);
 
-    const newUser = await (new this.userModel({ ...registerDto, password: encryptPassword })).save();
+    const newUser = await (new this.userModel(registerDto.deviceId ? { username: registerDto.username, password: encryptPassword, fcm: registerDto.fcm, deviceId: registerDto.deviceId } : { username: registerDto.username, password: encryptPassword, fcm: registerDto.fcm })).save();
 
     return await this.generateJwtToken(newUser);
   }

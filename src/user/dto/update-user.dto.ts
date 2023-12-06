@@ -39,4 +39,8 @@ export class UpdateUserDto {
     @IsBoolean()
     @IsOptional()
     readonly isHiddenActivity?: boolean;
+
+    @IsNumber()
+    @IsOptional()
+    readonly color?: number;
 }

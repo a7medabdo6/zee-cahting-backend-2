@@ -3,6 +3,8 @@ import { User } from 'src/user/entities/user.entity';
 
 export interface RoomMessage {
 
+    id: string;
+
     sender: User;
 
     type: RoomMessageTypes;
@@ -16,5 +18,7 @@ export interface RoomMessage {
     tempId?: string;
 
     createdAt: Date,
+
+    replayMessage?: Object;
 }
 

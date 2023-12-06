@@ -1,9 +1,9 @@
-import { IsNotEmpty, IsOptional, IsString, Length } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, Length, MaxLength } from "class-validator";
 
 export class LoginDto {
 
     @IsNotEmpty()
-    @Length(6, 64)
+    @MaxLength(64)
     readonly username: string;
 
     @IsNotEmpty()

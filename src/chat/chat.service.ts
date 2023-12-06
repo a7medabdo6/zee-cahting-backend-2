@@ -13,6 +13,8 @@ import { RoomMessage } from './entities/room-message-entity';
 import { SendRoomMessageDto } from './dto/send-room-message.dto';
 import { Room } from 'src/rooms/entities/room';
 import { RoomMessageTypes } from 'src/common/enums';
+import { ReactionDto } from './dto/reaction.dto';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class ChatService {
@@ -90,7 +92,9 @@ export class ChatService {
     })
       .sort({ 'createdAt': -1 })
       .limit(20).skip((page - 1) * 20)
+      .populate('replayMessage')
       .exec();
+    await this.getPrivateMessagesReactionUsers(messages);
     return messages;
   }
 
@@ -111,15 +115,29 @@ export class ChatService {
 
     if (isBlockedBySender) throw new BadRequestException('a message cannot be sent to a user you have blocked');
 
+    if (sendMessageDto.text.startsWith('http') && sendMessageDto.text.endsWith('.mp3')) {
+      sendMessageDto.media = [
+        {
+          type: 3,
+          url: sendMessageDto.text,
+        }
+      ];
+      sendMessageDto.text = '';
+    }
+
     const messageObject = new this.privateMessageModel({
       senderId: userId,
       receiverId: sendMessageDto.to,
       text: sendMessageDto.text,
       media: sendMessageDto.media,
       isBlock: isBlockedByReceiver,
+      replayMessage: sendMessageDto.replayMessage,
     });
 
     const message = await messageObject.save();
+    if (sendMessageDto.replayMessage) {
+      message.replayMessage = await this.privateMessageModel.findById(sendMessageDto.replayMessage).exec();
+    }
     message.tempId = sendMessageDto.tempId;
 
     this.createContactIfNotExist(userId, sendMessageDto.to);
@@ -133,7 +151,18 @@ export class ChatService {
     const user = await this.userModel.findById(userId).select(baseUserFields).exec();
     if (!user) throw new BadRequestException('User Not Exist');
 
+
+    if (sendRoomMessageDto.text.startsWith('http') && sendRoomMessageDto.text.endsWith('.mp3')) {
+      sendRoomMessageDto.media = [
+        {
+          type: 3,
+          url: sendRoomMessageDto.text,
+        }
+      ];
+      sendRoomMessageDto.text = '';
+    }
     return {
+      id: randomUUID(),
       sender: user,
       text: sendRoomMessageDto.text,
       media: sendRoomMessageDto.media,
@@ -141,6 +170,7 @@ export class ChatService {
       tempId: sendRoomMessageDto.tempId,
       createdAt: new Date(),
       type: RoomMessageTypes.normal,
+      replayMessage: sendRoomMessageDto.replayMessage,
     };
   }
 
@@ -233,5 +263,55 @@ export class ChatService {
 
   getUnReadNotificationsCount(userId: string): Promise<number> {
     return this.NotificationModel.countDocuments({ ownerId: userId, isRead: false }).exec();
+  }
+
+  async privateMessageReaction(userId: string, reactionDto: ReactionDto): Promise<PrivateMessage> {
+    const { messageId, type } = reactionDto;
+    await this.privateMessageModel.updateOne({ _id: messageId }, { $pull: { reactions: { userId } } }).exec();
+    if (reactionDto.type == null) {
+      const message = await this.privateMessageModel.findById(messageId).exec();
+      await this.getPrivateMessagesReactionUsers([message]);
+      return message;
+    }
+    const message = await this.privateMessageModel.findOneAndUpdate({ _id: messageId }, { $addToSet: { reactions: { userId, type } } }, { returnOriginal: false }).exec();
+    if (!message) throw new BadRequestException('Message Not Exist');
+    await this.getPrivateMessagesReactionUsers([message]);
+    return message;
+  }
+
+  async getUserActiveRooms(userId: string): Promise<string[]> {
+    const user = await this.userModel.findById(userId).select('activeRooms').exec();
+    if (!user) return [];
+    return user.activeRooms;
+  }
+
+  private async getPrivateMessagesReactionUsers(privateMessages: PrivateMessage[]) {
+    const usersIds: string[] = [];
+
+    for (const message of privateMessages) {
+      if (message.reactions.length > 0) {
+        for (const reaction of message.reactions) {
+          const userId = reaction['userId'];
+          if (!usersIds.includes(userId)) {
+            usersIds.push(userId);
+          }
+        }
+      }
+    }
+    if (usersIds.length == 0) return [];
+    const users = await this.getUsersById(usersIds);
+    for (const message of privateMessages) {
+      if (message.reactions.length > 0) {
+        for (const reaction of message.reactions) {
+          const userId = reaction['userId'];
+          for (const user of users) {
+            if (user.id == userId) {
+              reaction['user'] = user;
+              break;
+            }
+          }
+        }
+      }
+    }
   }
 }

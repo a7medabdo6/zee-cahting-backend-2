@@ -1,4 +1,4 @@
-import { IsArray, IsEnum, IsMongoId, IsOptional, IsString } from "class-validator";
+import { IsArray, IsEnum, IsMongoId, IsObject, IsOptional, IsString } from "class-validator";
 import { RoomMessageTypes } from "src/common/enums";
 
 export class SendRoomMessageDto {
@@ -20,4 +20,8 @@ export class SendRoomMessageDto {
 
     @IsEnum(RoomMessageTypes)
     type: RoomMessageTypes;
+
+    @IsObject()
+    @IsOptional()
+    replayMessage?: Object;
 }

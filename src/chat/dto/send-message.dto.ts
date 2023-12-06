@@ -15,4 +15,8 @@ export class SendMessageDto {
     @IsArray()
     @IsOptional()
     media: any;
+
+    @IsString()
+    @IsOptional()
+    replayMessage?: string;
 }

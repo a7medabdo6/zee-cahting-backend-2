@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Type } from 'class-transformer';
+import { Document, Types } from 'mongoose';
 
 @Schema({
     toJSON: {
@@ -48,6 +49,13 @@ export class PrivateMessage extends Document {
 
     @Prop()
     isBlock: boolean;
+
+    @Prop({ type: Types.ObjectId, ref: 'PrivateMessage' })
+    @Type(() => PrivateMessage)
+    replayMessage?: PrivateMessage;
+
+    @Prop()
+    reactions: Array<Object>;
 }
 
 export const PrivateMessageSchema = SchemaFactory.createForClass(PrivateMessage);

@@ -32,6 +32,9 @@ export class UserController {
     if (updateUserDto.isHiddenActivity != null) {
       this.chatGateway.sendUserOnlineStatusToContacts(userAuth.id, true);
     }
+    if (updateUserDto.color != null) {
+      this.chatGateway.sendUpdatedUserColorToActiveRooms(userAuth.id);
+    }
     return user;
   }
 
